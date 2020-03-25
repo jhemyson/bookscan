@@ -1,17 +1,49 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import Quagga from 'quagga';
 
-import { Container } from './styles';
+import { Container, Video } from './styles';
 
 function Main() {
+  const onDetected = result => {
+    Quagga.offDetected();
+
+    let isbn = result.codeResult.code;
+
+    alert(isbn);
+  }
+
+  useEffect(() => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector("#video"),
+          contrains: {
+            facingMode: 'environment',
+          },
+        },
+        numOfWorkers: 1,
+        locate: true,
+        decoder: {
+          readers: ['ean_reader']
+        },
+      }, error => {
+        if (error) {
+          console.error(error);
+          alert("Erro ao abrir a câmera");
+          return;
+        }
+        Quagga.start();
+      },
+        Quagga.onDetected(onDetected)
+      );
+    }
+  }, []);
+
   return (
     <Container>
-      <img
-        src="https://devsamurai-materials.s3.amazonaws.com/templates/dev-samurai-white.png"
-        height="256"
-        alt="Dev Samurai"
-      />
-      <h1>Fala Samurai!</h1>
-      <p>Esse é o template básico da Dev Samurai para React.</p>
+      <Video id="video"/>
     </Container>
   );
 }
